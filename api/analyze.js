@@ -112,11 +112,11 @@ function buildMedicalReport(predictions, category, model) {
 
   // Build findings from all predictions
   const findings = sorted.slice(0, 4).map(p => {
-    const lbl = p.label.toLowerCase();
+    const plabel = p.label.toLowerCase();
     const pct = Math.round(p.score * 100);
     let level = 'normal';
-    if (dangerousLabels.some(d => lbl.includes(d)) && pct > 40) level = 'danger';
-    else if (warningLabels.some(w => lbl.includes(w)) && pct > 30) level = 'warning';
+    if (dangerousLabels.some(d => plabel.includes(d)) && pct > 40) level = 'danger';
+    else if (warningLabels.some(w => plabel.includes(w)) && pct > 30) level = 'warning';
     return {
       level,
       text: `${formatLabel(p.label)}: ${pct}% confidence`
