@@ -40,7 +40,7 @@ severity must be: normal, low, medium, or high
 urgency must be: routine, soon, urgent, or emergency
 level must be: normal, warning, or danger`;
 
-    // Correct URL format per HF docs 2025
+    // Use :fastest to auto-select available provider
     const hfResponse = await fetch(
       'https://router.huggingface.co/v1/chat/completions',
       {
@@ -50,7 +50,7 @@ level must be: normal, warning, or danger`;
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-          model: 'meta-llama/Llama-3.2-11B-Vision-Instruct',
+          model: 'Qwen/Qwen2.5-VL-7B-Instruct:fastest',
           messages: [
             {
               role: 'user',
@@ -93,8 +93,8 @@ level must be: normal, warning, or danger`;
 
     const result = JSON.parse(jsonMatch[0]);
 
-    result.modelUsed = 'meta-llama/Llama-3.2-11B-Vision-Instruct';
-    result.architecture = 'Llama 3.2 Vision (11B parameters)';
+    result.modelUsed = 'Qwen/Qwen2.5-VL-7B-Instruct';
+    result.architecture = 'Qwen2.5-VL (7B Vision Language Model)';
     result.dataset = 'Multimodal Medical + General Dataset';
     result.allPredictions = [
       { label: result.primaryFinding, score: result.confidence || 85 },
