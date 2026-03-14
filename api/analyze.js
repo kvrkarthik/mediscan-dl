@@ -34,17 +34,15 @@ export default async function handler(req, res) {
 
 Analyze this medical image and respond ONLY with a valid JSON object. No markdown, no backticks, no explanation — just raw JSON exactly like this:
 
-{"summary":"2-3 sentence overview","primaryFinding":"main finding or No significant abnormality detected","severity":"normal","severityScore":10,"confidence":85,"findings":[{"level":"normal","text":"finding 1"},{"level":"warning","text":"finding 2"}],"possibleConditions":["condition1","condition2"],"recommendation":"actionable recommendation","urgency":"routine"}
+{"summary":"2-3 sentence overview","primaryFinding":"main finding","severity":"normal","severityScore":10,"confidence":85,"findings":[{"level":"normal","text":"finding 1"},{"level":"warning","text":"finding 2"}],"possibleConditions":["condition1","condition2"],"recommendation":"actionable recommendation","urgency":"routine"}
 
 severity must be: normal, low, medium, or high
 urgency must be: routine, soon, urgent, or emergency
 level must be: normal, warning, or danger`;
 
-    // Use Qwen2.5-VL vision model — supports image analysis via HF inference
-    const model = 'Qwen/Qwen2.5-VL-7B-Instruct';
-
+    // Correct URL format per HF docs 2025
     const hfResponse = await fetch(
-      `https://router.huggingface.co/hf-inference/models/${model}/v1/chat/completions`,
+      'https://router.huggingface.co/v1/chat/completions',
       {
         method: 'POST',
         headers: {
@@ -52,7 +50,7 @@ level must be: normal, warning, or danger`;
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-          model: model,
+          model: 'meta-llama/Llama-3.2-11B-Vision-Instruct',
           messages: [
             {
               role: 'user',
@@ -88,7 +86,6 @@ level must be: normal, warning, or danger`;
     let text = data.choices?.[0]?.message?.content || '';
     text = text.replace(/```json|```/g, '').trim();
 
-    // Extract JSON if wrapped in text
     const jsonMatch = text.match(/\{[\s\S]*\}/);
     if (!jsonMatch) {
       return res.status(500).json({ error: 'Model returned invalid response. Try again.' });
@@ -96,9 +93,8 @@ level must be: normal, warning, or danger`;
 
     const result = JSON.parse(jsonMatch[0]);
 
-    // Add model metadata
-    result.modelUsed = model;
-    result.architecture = 'Qwen2.5-VL (Vision Language Model)';
+    result.modelUsed = 'meta-llama/Llama-3.2-11B-Vision-Instruct';
+    result.architecture = 'Llama 3.2 Vision (11B parameters)';
     result.dataset = 'Multimodal Medical + General Dataset';
     result.allPredictions = [
       { label: result.primaryFinding, score: result.confidence || 85 },
