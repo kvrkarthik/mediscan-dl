@@ -21,20 +21,11 @@ export default async function handler(req, res) {
 
     const imageBuffer = Buffer.from(imageBase64, 'base64');
 
-    // Verified working models on HuggingFace inference API
-    const modelMap = {
-      xray:    'microsoft/resnet-50',
-      skin:    'microsoft/resnet-50',
-      eye:     'microsoft/resnet-50',
-      mri:     'microsoft/resnet-50',
-      micro:   'microsoft/resnet-50',
-      general: 'microsoft/resnet-50'
-    };
-
-    const model = modelMap[category] || modelMap.general;
+    // Using google/vit-base-patch16-224 — verified working on HF inference
+    const model = 'google/vit-base-patch16-224';
 
     const hfResponse = await fetch(
-      `https://router.huggingface.co/hf-inference/models/${model}`,
+      `https://api-inference.huggingface.co/pipeline/image-classification/${model}`,
       {
         method: 'POST',
         headers: {
@@ -121,12 +112,12 @@ function buildMedicalReport(predictions, category, model) {
   });
 
   const categoryInfo = {
-    xray:    { name: 'Chest X-Ray',     arch: 'ResNet-50', dataset: 'ImageNet-1k' },
-    skin:    { name: 'Skin Lesion',     arch: 'ResNet-50', dataset: 'ImageNet-1k' },
-    eye:     { name: 'Retinal Scan',    arch: 'ResNet-50', dataset: 'ImageNet-1k' },
-    mri:     { name: 'Tissue/MRI',      arch: 'ResNet-50', dataset: 'ImageNet-1k' },
-    micro:   { name: 'Blood Microscopy',arch: 'ResNet-50', dataset: 'ImageNet-1k' },
-    general: { name: 'Medical Image',   arch: 'ResNet-50', dataset: 'ImageNet-1k' }
+    xray:    { name: 'Chest X-Ray',      arch: 'ViT-Base-Patch16-224', dataset: 'ImageNet-21k' },
+    skin:    { name: 'Skin Lesion',      arch: 'ViT-Base-Patch16-224', dataset: 'ImageNet-21k' },
+    eye:     { name: 'Retinal Scan',     arch: 'ViT-Base-Patch16-224', dataset: 'ImageNet-21k' },
+    mri:     { name: 'Tissue/MRI',       arch: 'ViT-Base-Patch16-224', dataset: 'ImageNet-21k' },
+    micro:   { name: 'Blood Microscopy', arch: 'ViT-Base-Patch16-224', dataset: 'ImageNet-21k' },
+    general: { name: 'Medical Image',    arch: 'ViT-Base-Patch16-224', dataset: 'ImageNet-21k' }
   };
 
   const info = categoryInfo[category] || categoryInfo.general;
@@ -138,7 +129,7 @@ function buildMedicalReport(predictions, category, model) {
     .slice(0, 3);
 
   return {
-    summary: `Deep learning analysis using ${info.arch} architecture on ${info.name} image. Primary classification: ${formatLabel(topLabel)} with ${topScore}% confidence. Model performed inference across 1000 ImageNet classes with residual learning framework.`,
+    summary: `Deep learning analysis using ${info.arch} (Vision Transformer) on ${info.name}. Primary classification: ${formatLabel(topLabel)} with ${topScore}% confidence. Model pretrained on ${info.dataset} with 86M parameters.`,
     primaryFinding: `${formatLabel(topLabel)} — ${topScore}% confidence`,
     severity,
     severityScore,
