@@ -12,7 +12,7 @@ export default async function handler(req, res) {
     const { imageBase64, mediaType, category } = req.body;
     if (!imageBase64 || !category) {
       return res.status(400).json({ error: 'Missing imageBase64 or category' });
-    }l
+    }
 
     const apiKey = process.env.HF_API_KEY;
     if (!apiKey) {
