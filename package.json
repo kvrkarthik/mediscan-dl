@@ -2,5 +2,8 @@
   "name": "mediscan-ai-dl",
   "version": "2.0.0",
   "description": "Deep Learning based medical image disease detection",
-  "engines": { "node": ">=18.x" }
+  "type": "module",
+  "engines": {
+    "node": "20.x"
+  }
 }
