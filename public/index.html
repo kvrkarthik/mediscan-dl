@@ -1,0 +1,602 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MediScan AI — Deep Learning Medical Analysis</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:ital,wght@0,300;0,400;1,300&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg: #050a0e; --surface: #0c1419; --surface2: #111d24; --border: #1a2f3a;
+    --accent: #00e5c8; --accent2: #0099ff; --accent3: #ff4d6d;
+    --text: #e8f4f0; --text-dim: #6b8a94; --text-mid: #9bb8c2;
+    --success: #00e5a0; --warning: #ffb347; --danger: #ff4d6d;
+    --font-display: 'Syne', sans-serif; --font-body: 'DM Sans', sans-serif; --font-mono: 'DM Mono', monospace;
+  }
+  html { scroll-behavior: smooth; }
+  body { background: var(--bg); color: var(--text); font-family: var(--font-body); min-height: 100vh; overflow-x: hidden; }
+  body::before { content: ''; position: fixed; inset: 0; background-image: linear-gradient(rgba(0,229,200,0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(0,229,200,0.03) 1px, transparent 1px); background-size: 40px 40px; pointer-events: none; z-index: 0; }
+  .orb { position: fixed; border-radius: 50%; filter: blur(80px); pointer-events: none; z-index: 0; opacity: 0.15; }
+  .orb-1 { width: 500px; height: 500px; background: var(--accent); top: -150px; right: -100px; }
+  .orb-2 { width: 400px; height: 400px; background: var(--accent2); bottom: -100px; left: -100px; }
+  .orb-3 { width: 300px; height: 300px; background: var(--accent3); top: 40%; left: 30%; opacity: 0.08; }
+
+  header { position: sticky; top: 0; z-index: 10; padding: 0 40px; height: 70px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--border); background: rgba(5,10,14,0.85); backdrop-filter: blur(20px); }
+  .logo { display: flex; align-items: center; gap: 10px; font-family: var(--font-display); font-weight: 800; font-size: 1.4rem; letter-spacing: -0.5px; }
+  .logo-icon { width: 34px; height: 34px; background: linear-gradient(135deg, var(--accent), var(--accent2)); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 16px; }
+  .logo span { color: var(--accent); }
+  nav { display: flex; gap: 8px; align-items: center; }
+  nav a { color: var(--text-dim); text-decoration: none; font-size: 0.875rem; padding: 6px 14px; border-radius: 6px; transition: all 0.2s; }
+  nav a:hover { color: var(--text); background: var(--surface2); }
+  .badge-live { display: flex; align-items: center; gap: 6px; background: rgba(0,229,200,0.1); border: 1px solid rgba(0,229,200,0.3); color: var(--accent); font-size: 0.75rem; font-family: var(--font-mono); padding: 4px 10px; border-radius: 20px; letter-spacing: 0.5px; }
+  .badge-live::before { content: ''; width: 6px; height: 6px; background: var(--accent); border-radius: 50%; animation: pulse 1.5s infinite; }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
+
+  .hero { position: relative; z-index: 1; padding: 80px 40px 60px; max-width: 900px; margin: 0 auto; text-align: center; }
+  .hero-tag { display: inline-flex; align-items: center; gap: 8px; background: rgba(0,153,255,0.1); border: 1px solid rgba(0,153,255,0.3); color: var(--accent2); font-size: 0.75rem; font-family: var(--font-mono); padding: 6px 14px; border-radius: 20px; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 28px; }
+  h1 { font-family: var(--font-display); font-size: clamp(2.5rem, 6vw, 4.5rem); font-weight: 800; line-height: 1.05; letter-spacing: -2px; margin-bottom: 20px; }
+  h1 .line2 { color: var(--accent); }
+  .hero-sub { color: var(--text-mid); font-size: 1.1rem; line-height: 1.7; max-width: 600px; margin: 0 auto 20px; font-weight: 300; }
+  .disclaimer-banner { display: inline-flex; align-items: center; gap: 8px; background: rgba(255,77,109,0.08); border: 1px solid rgba(255,77,109,0.25); color: #ff8fa3; font-size: 0.78rem; padding: 8px 16px; border-radius: 8px; margin-bottom: 50px; font-family: var(--font-mono); }
+
+  /* DL Architecture Banner */
+  .arch-banner { position: relative; z-index: 1; max-width: 1100px; margin: 0 auto 50px; padding: 0 40px; }
+  .arch-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 1px; background: var(--border); border-radius: 12px; overflow: hidden; border: 1px solid var(--border); }
+  .arch-item { background: var(--surface); padding: 16px 12px; text-align: center; }
+  .arch-item:hover { background: var(--surface2); }
+  .arch-icon { font-size: 1.4rem; margin-bottom: 6px; }
+  .arch-name { font-family: var(--font-mono); font-size: 0.7rem; color: var(--accent); font-weight: 600; margin-bottom: 2px; }
+  .arch-desc { font-size: 0.65rem; color: var(--text-dim); }
+
+  .stats { display: flex; justify-content: center; gap: 40px; padding: 0 40px 60px; position: relative; z-index: 1; flex-wrap: wrap; }
+  .stat-item { text-align: center; }
+  .stat-num { font-family: var(--font-display); font-size: 2rem; font-weight: 800; color: var(--accent); letter-spacing: -1px; }
+  .stat-label { font-size: 0.78rem; color: var(--text-dim); text-transform: uppercase; letter-spacing: 1px; font-family: var(--font-mono); margin-top: 2px; }
+  .stat-divider { width: 1px; background: var(--border); align-self: stretch; margin: 4px 0; }
+
+  .main-section { position: relative; z-index: 1; max-width: 1100px; margin: 0 auto; padding: 0 40px 80px; display: grid; grid-template-columns: 1fr 1fr; gap: 24px; align-items: start; }
+  .panel { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; overflow: hidden; }
+  .panel-header { padding: 18px 24px; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 10px; background: var(--surface2); }
+  .panel-title { font-family: var(--font-display); font-size: 0.9rem; font-weight: 700; letter-spacing: 0.5px; text-transform: uppercase; color: var(--text-mid); }
+  .panel-icon { width: 28px; height: 28px; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 14px; }
+  .panel-icon.teal { background: rgba(0,229,200,0.15); }
+  .panel-icon.blue { background: rgba(0,153,255,0.15); }
+
+  .upload-zone { padding: 24px; }
+  .drop-area { border: 2px dashed var(--border); border-radius: 12px; padding: 40px 20px; text-align: center; cursor: pointer; transition: all 0.3s; background: rgba(0,229,200,0.02); position: relative; overflow: hidden; }
+  .drop-area:hover, .drop-area.dragover { border-color: var(--accent); background: rgba(0,229,200,0.06); }
+  .drop-area.has-image { padding: 0; border: 2px solid var(--accent); }
+  .drop-icon { font-size: 2.5rem; margin-bottom: 12px; display: block; opacity: 0.6; }
+  .drop-title { font-family: var(--font-display); font-weight: 700; font-size: 1rem; margin-bottom: 6px; }
+  .drop-sub { color: var(--text-dim); font-size: 0.8rem; font-family: var(--font-mono); }
+  #previewImg { width: 100%; max-height: 260px; object-fit: contain; display: none; border-radius: 10px; }
+  #fileInput { display: none; }
+
+  .upload-controls { margin-top: 16px; display: flex; flex-direction: column; gap: 12px; }
+  .selector-label { font-size: 0.78rem; color: var(--text-dim); font-family: var(--font-mono); text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 8px; }
+  .category-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
+  .cat-btn { padding: 8px 6px; background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; color: var(--text-dim); font-size: 0.68rem; font-family: var(--font-mono); cursor: pointer; transition: all 0.2s; text-align: center; display: flex; flex-direction: column; align-items: center; gap: 2px; }
+  .cat-btn .cat-icon { font-size: 1.1em; }
+  .cat-btn .cat-model { font-size: 0.6rem; color: var(--text-dim); opacity: 0.7; }
+  .cat-btn:hover { border-color: var(--accent); color: var(--accent); background: rgba(0,229,200,0.05); }
+  .cat-btn.active { border-color: var(--accent); color: var(--accent); background: rgba(0,229,200,0.1); }
+  .cat-btn.active .cat-model { color: var(--accent); opacity: 0.7; }
+
+  .model-info-box { background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; padding: 10px 14px; font-size: 0.72rem; font-family: var(--font-mono); color: var(--text-dim); display: flex; align-items: center; gap: 8px; }
+  .model-info-box span:first-child { color: var(--accent2); }
+
+  .analyze-btn { width: 100%; padding: 14px; background: linear-gradient(135deg, var(--accent), var(--accent2)); color: #050a0e; border: none; border-radius: 10px; font-family: var(--font-display); font-weight: 700; font-size: 0.95rem; cursor: pointer; letter-spacing: 0.5px; transition: all 0.3s; display: flex; align-items: center; justify-content: center; gap: 8px; }
+  .analyze-btn:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,229,200,0.3); }
+  .analyze-btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+
+  .results-zone { padding: 24px; min-height: 420px; }
+  .results-empty { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 400px; color: var(--text-dim); text-align: center; gap: 12px; }
+  .results-empty-icon { font-size: 3rem; opacity: 0.3; }
+  .results-empty-text { font-size: 0.85rem; font-family: var(--font-mono); }
+
+  .loading-state { display: none; flex-direction: column; align-items: center; justify-content: center; height: 400px; gap: 20px; }
+  .scanner { width: 80px; height: 80px; position: relative; }
+  .scanner-ring { position: absolute; inset: 0; border: 2px solid transparent; border-top-color: var(--accent); border-radius: 50%; animation: spin 1s linear infinite; }
+  .scanner-ring:nth-child(2) { inset: 10px; border-top-color: var(--accent2); animation-direction: reverse; animation-duration: 0.8s; }
+  .scanner-ring:nth-child(3) { inset: 20px; border-top-color: var(--accent3); animation-duration: 1.2s; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .loading-text { font-family: var(--font-mono); font-size: 0.85rem; color: var(--text-mid); }
+  .loading-steps { display: flex; flex-direction: column; gap: 6px; width: 220px; }
+  .loading-step { font-size: 0.72rem; font-family: var(--font-mono); color: var(--text-dim); display: flex; align-items: center; gap: 8px; opacity: 0; animation: fadeInStep 0.4s forwards; }
+  .loading-step::before { content:'▸'; color: var(--accent); }
+  @keyframes fadeInStep { to { opacity: 1; } }
+
+  .result-content { display: none; }
+  .severity-bar { background: var(--surface2); border-radius: 8px; padding: 16px; margin-bottom: 12px; border: 1px solid var(--border); }
+  .severity-label { font-size: 0.72rem; font-family: var(--font-mono); color: var(--text-dim); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px; }
+  .severity-track { height: 6px; background: var(--border); border-radius: 3px; overflow: hidden; margin-bottom: 8px; }
+  .severity-fill { height: 100%; border-radius: 3px; transition: width 1s ease; background: linear-gradient(90deg, var(--success), var(--warning)); }
+  .severity-fill.high { background: linear-gradient(90deg, var(--warning), var(--danger)); }
+  .severity-nums { display: flex; justify-content: space-between; font-size: 0.7rem; font-family: var(--font-mono); color: var(--text-dim); }
+  .result-section { margin-bottom: 14px; }
+  .result-section-title { font-family: var(--font-display); font-size: 0.8rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: var(--text-dim); margin-bottom: 8px; display: flex; align-items: center; gap: 6px; }
+  .result-section-title::before { content: ''; width: 3px; height: 14px; background: var(--accent); border-radius: 2px; }
+  .result-text { font-size: 0.875rem; line-height: 1.7; color: var(--text-mid); background: var(--surface2); border-radius: 8px; padding: 12px 16px; border: 1px solid var(--border); }
+  .findings-list { display: flex; flex-direction: column; gap: 6px; }
+  .finding-item { display: flex; align-items: flex-start; gap: 10px; background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; padding: 10px 14px; font-size: 0.83rem; color: var(--text-mid); line-height: 1.5; }
+  .finding-dot { width: 8px; height: 8px; border-radius: 50%; margin-top: 5px; flex-shrink: 0; }
+  .dot-normal { background: var(--success); }
+  .dot-warning { background: var(--warning); }
+  .dot-danger { background: var(--danger); }
+  .recommendation-box { background: rgba(0,229,200,0.05); border: 1px solid rgba(0,229,200,0.2); border-radius: 8px; padding: 14px 16px; font-size: 0.83rem; color: var(--text-mid); line-height: 1.7; }
+  .disclaimer-box { background: rgba(255,77,109,0.06); border: 1px solid rgba(255,77,109,0.2); border-radius: 8px; padding: 12px 14px; font-size: 0.75rem; color: #ff8fa3; font-family: var(--font-mono); line-height: 1.6; display: flex; gap: 8px; }
+
+  /* Probability bars */
+  .prob-bars { display: flex; flex-direction: column; gap: 6px; }
+  .prob-bar-item { display: flex; align-items: center; gap: 8px; }
+  .prob-label { font-size: 0.72rem; font-family: var(--font-mono); color: var(--text-mid); width: 140px; flex-shrink: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .prob-track { flex: 1; height: 6px; background: var(--border); border-radius: 3px; overflow: hidden; }
+  .prob-fill { height: 100%; border-radius: 3px; background: linear-gradient(90deg, var(--accent2), var(--accent)); transition: width 1s ease; }
+  .prob-pct { font-size: 0.7rem; font-family: var(--font-mono); color: var(--accent); width: 36px; text-align: right; flex-shrink: 0; }
+
+  /* Model tag */
+  .model-tag { display: inline-flex; align-items: center; gap: 6px; background: rgba(0,153,255,0.08); border: 1px solid rgba(0,153,255,0.2); color: var(--accent2); font-size: 0.68rem; font-family: var(--font-mono); padding: 4px 10px; border-radius: 6px; margin-bottom: 14px; }
+
+  /* Architecture section */
+  .arch-section { position: relative; z-index: 1; max-width: 1100px; margin: 0 auto 80px; padding: 0 40px; }
+  .section-heading { font-family: var(--font-display); font-size: 1.8rem; font-weight: 800; letter-spacing: -0.5px; margin-bottom: 8px; }
+  .section-sub { color: var(--text-dim); font-size: 0.9rem; margin-bottom: 40px; }
+  .models-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+  .model-card { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 22px; transition: border-color 0.3s; }
+  .model-card:hover { border-color: var(--accent); }
+  .model-card-icon { font-size: 1.8rem; margin-bottom: 12px; }
+  .model-card-name { font-family: var(--font-display); font-weight: 700; font-size: 0.95rem; margin-bottom: 4px; }
+  .model-card-arch { font-size: 0.72rem; font-family: var(--font-mono); color: var(--accent); margin-bottom: 8px; }
+  .model-card-desc { font-size: 0.8rem; color: var(--text-dim); line-height: 1.6; }
+  .model-card-dataset { font-size: 0.68rem; font-family: var(--font-mono); color: var(--text-dim); margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--border); }
+
+  /* Pipeline section */
+  .pipeline-section { position: relative; z-index: 1; max-width: 1100px; margin: 0 auto 80px; padding: 0 40px; }
+  .pipeline { display: flex; align-items: center; gap: 0; flex-wrap: wrap; }
+  .pipeline-step { flex: 1; background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 20px 16px; text-align: center; min-width: 140px; }
+  .pipeline-arrow { color: var(--accent); font-size: 1.2rem; padding: 0 8px; flex-shrink: 0; }
+  .pipeline-step-icon { font-size: 1.6rem; margin-bottom: 8px; }
+  .pipeline-step-name { font-family: var(--font-display); font-weight: 700; font-size: 0.85rem; margin-bottom: 4px; }
+  .pipeline-step-desc { font-size: 0.72rem; color: var(--text-dim); font-family: var(--font-mono); }
+
+  footer { position: relative; z-index: 1; border-top: 1px solid var(--border); padding: 40px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 20px; background: rgba(5,10,14,0.5); }
+  .footer-logo { font-family: var(--font-display); font-weight: 800; font-size: 1.2rem; }
+  .footer-logo span { color: var(--accent); }
+  .footer-disclaimer { font-size: 0.75rem; color: var(--text-dim); max-width: 500px; text-align: center; line-height: 1.6; font-family: var(--font-mono); }
+  .footer-right { font-size: 0.75rem; color: var(--text-dim); font-family: var(--font-mono); }
+
+  .fade-in { opacity: 0; transform: translateY(20px); animation: fadeIn 0.6s forwards; }
+  @keyframes fadeIn { to { opacity: 1; transform: none; } }
+  .delay-1 { animation-delay: 0.1s; } .delay-2 { animation-delay: 0.2s; } .delay-3 { animation-delay: 0.3s; }
+
+  @media (max-width: 768px) {
+    header { padding: 0 20px; }
+    .hero { padding: 50px 20px 40px; }
+    .stats { padding: 0 20px 40px; gap: 20px; }
+    .stat-divider { display: none; }
+    .main-section { grid-template-columns: 1fr; padding: 0 20px 60px; }
+    .arch-grid { grid-template-columns: repeat(3, 1fr); }
+    .models-grid { grid-template-columns: 1fr; }
+    .arch-section, .pipeline-section, .arch-banner { padding: 0 20px; }
+    .pipeline { flex-direction: column; }
+    .pipeline-arrow { transform: rotate(90deg); }
+    footer { padding: 30px 20px; flex-direction: column; text-align: center; }
+    nav a { display: none; }
+  }
+  @media (max-width: 480px) {
+    .category-grid { grid-template-columns: repeat(2, 1fr); }
+    .arch-grid { grid-template-columns: repeat(2, 1fr); }
+  }
+</style>
+</head>
+<body>
+<div class="orb orb-1"></div>
+<div class="orb orb-2"></div>
+<div class="orb orb-3"></div>
+
+<header>
+  <div class="logo"><div class="logo-icon">🔬</div>Medi<span>Scan</span> AI</div>
+  <nav>
+    <a href="#analyze">Analyze</a>
+    <a href="#models">DL Models</a>
+    <a href="#pipeline">Pipeline</a>
+  </nav>
+  <div class="badge-live">DEEP LEARNING</div>
+</header>
+
+<section class="hero" id="analyze">
+  <div class="hero-tag">🧠 CNN · ViT · EfficientNet · ResNet</div>
+  <h1 class="fade-in">Medical Imaging<br><span class="line2">Powered by Deep Learning</span></h1>
+  <p class="hero-sub fade-in delay-1">Real pretrained deep learning models — Vision Transformers, EfficientNet, and ResNet architectures trained on clinical medical datasets — analyze your images instantly.</p>
+  <div class="disclaimer-banner fade-in delay-2">⚠️ FOR EDUCATIONAL USE ONLY — Always consult a licensed physician for diagnosis</div>
+</section>
+
+<!-- Architecture Banner -->
+<div class="arch-banner fade-in">
+  <div class="arch-grid">
+    <div class="arch-item"><div class="arch-icon">🧠</div><div class="arch-name">ViT-Base</div><div class="arch-desc">Vision Transformer</div></div>
+    <div class="arch-item"><div class="arch-icon">⚡</div><div class="arch-name">EfficientNet-B4</div><div class="arch-desc">Skin Lesion CNN</div></div>
+    <div class="arch-item"><div class="arch-icon">🔷</div><div class="arch-name">ResNet-50</div><div class="arch-desc">Residual Network</div></div>
+    <div class="arch-item"><div class="arch-icon">📊</div><div class="arch-name">MedMNIST</div><div class="arch-desc">Medical Dataset</div></div>
+    <div class="arch-item"><div class="arch-icon">🤗</div><div class="arch-name">HuggingFace</div><div class="arch-desc">Model Hub</div></div>
+  </div>
+</div>
+
+<div class="stats fade-in delay-2">
+  <div class="stat-item"><div class="stat-num">5</div><div class="stat-label">DL Models</div></div>
+  <div class="stat-divider"></div>
+  <div class="stat-item"><div class="stat-num">ViT</div><div class="stat-label">Architecture</div></div>
+  <div class="stat-divider"></div>
+  <div class="stat-item"><div class="stat-num">Real</div><div class="stat-label">Trained Weights</div></div>
+  <div class="stat-divider"></div>
+  <div class="stat-item"><div class="stat-num">Free</div><div class="stat-label">To Use</div></div>
+</div>
+
+<section class="main-section">
+  <div class="panel fade-in">
+    <div class="panel-header">
+      <div class="panel-icon teal">📤</div>
+      <div class="panel-title">Upload Medical Image</div>
+    </div>
+    <div class="upload-zone">
+      <div class="drop-area" id="dropArea" onclick="document.getElementById('fileInput').click()">
+        <div id="dropContent">
+          <span class="drop-icon">🩻</span>
+          <div class="drop-title">Drop your image here</div>
+          <div class="drop-sub">or click to browse — PNG, JPG, WEBP</div>
+        </div>
+        <img id="previewImg" alt="Medical image preview">
+      </div>
+      <input type="file" id="fileInput" accept="image/*">
+      <div class="upload-controls">
+        <div>
+          <div class="selector-label">Select DL Model</div>
+          <div class="category-grid">
+            <button class="cat-btn active" data-cat="xray" onclick="selectCat(this)">
+              <span class="cat-icon">🦴</span>X-Ray
+              <span class="cat-model">ViT-Base</span>
+            </button>
+            <button class="cat-btn" data-cat="skin" onclick="selectCat(this)">
+              <span class="cat-icon">🩹</span>Skin
+              <span class="cat-model">EfficientNet-B4</span>
+            </button>
+            <button class="cat-btn" data-cat="eye" onclick="selectCat(this)">
+              <span class="cat-icon">👁️</span>Retina
+              <span class="cat-model">ViT-Base</span>
+            </button>
+            <button class="cat-btn" data-cat="mri" onclick="selectCat(this)">
+              <span class="cat-icon">🧠</span>MRI/CT
+              <span class="cat-model">ViT-Base</span>
+            </button>
+            <button class="cat-btn" data-cat="micro" onclick="selectCat(this)">
+              <span class="cat-icon">🦠</span>Blood
+              <span class="cat-model">ViT-Base</span>
+            </button>
+            <button class="cat-btn" data-cat="general" onclick="selectCat(this)">
+              <span class="cat-icon">🔍</span>General
+              <span class="cat-model">ViT-Base</span>
+            </button>
+          </div>
+        </div>
+        <div class="model-info-box" id="modelInfoBox">
+          <span>🤖</span>
+          <span id="modelInfoText">Model: nickmuchi/vit-base-patch16-224-medmnist-chest</span>
+        </div>
+        <button class="analyze-btn" id="analyzeBtn" disabled onclick="analyzeImage()">
+          <span>⚡</span> Run Deep Learning Analysis
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div class="panel fade-in delay-1">
+    <div class="panel-header">
+      <div class="panel-icon blue">📊</div>
+      <div class="panel-title">DL Analysis Results</div>
+    </div>
+    <div class="results-zone">
+      <div class="results-empty" id="emptyState">
+        <div class="results-empty-icon">🧠</div>
+        <div class="results-empty-text">Select a model, upload an image<br>and click "Run Deep Learning Analysis"</div>
+      </div>
+      <div class="loading-state" id="loadingState">
+        <div class="scanner">
+          <div class="scanner-ring"></div><div class="scanner-ring"></div><div class="scanner-ring"></div>
+        </div>
+        <div class="loading-text">Running inference...</div>
+        <div class="loading-steps" id="loadingSteps"></div>
+      </div>
+      <div class="result-content" id="resultContent"></div>
+    </div>
+  </div>
+</section>
+
+<!-- DL Models Section -->
+<section class="arch-section" id="models">
+  <div class="section-heading fade-in">Deep Learning Models</div>
+  <div class="section-sub fade-in">Real pretrained models from Hugging Face Model Hub</div>
+  <div class="models-grid">
+    <div class="model-card fade-in">
+      <div class="model-card-icon">🦴</div>
+      <div class="model-card-name">Chest X-Ray Analysis</div>
+      <div class="model-card-arch">ViT-Base-Patch16-224</div>
+      <div class="model-card-desc">Vision Transformer fine-tuned for chest pathology detection including pneumonia, effusion, cardiomegaly and more.</div>
+      <div class="model-card-dataset">📦 Dataset: MedMNIST ChestMNIST (112,120 images)</div>
+    </div>
+    <div class="model-card fade-in delay-1">
+      <div class="model-card-icon">🩹</div>
+      <div class="model-card-name">Skin Lesion Classification</div>
+      <div class="model-card-arch">EfficientNet-B4</div>
+      <div class="model-card-desc">EfficientNet CNN trained to classify skin lesions including melanoma, nevus, keratosis and other dermatological conditions.</div>
+      <div class="model-card-dataset">📦 Dataset: ISIC Skin Lesion Dataset</div>
+    </div>
+    <div class="model-card fade-in delay-2">
+      <div class="model-card-icon">👁️</div>
+      <div class="model-card-name">Retinal Image Analysis</div>
+      <div class="model-card-arch">ViT-Base-Patch16-224</div>
+      <div class="model-card-desc">Vision Transformer for retinal disease classification including diabetic retinopathy grading and other retinal conditions.</div>
+      <div class="model-card-dataset">📦 Dataset: MedMNIST RetinaMNIST</div>
+    </div>
+    <div class="model-card fade-in">
+      <div class="model-card-icon">🧠</div>
+      <div class="model-card-name">Tissue/MRI Classification</div>
+      <div class="model-card-arch">ViT-Base-Patch16-224</div>
+      <div class="model-card-desc">Vision Transformer for tissue texture classification from microscopy and MRI images with multi-class output.</div>
+      <div class="model-card-dataset">📦 Dataset: MedMNIST TissueMNIST (236,386 patches)</div>
+    </div>
+    <div class="model-card fade-in delay-1">
+      <div class="model-card-icon">🦠</div>
+      <div class="model-card-name">Blood Cell Analysis</div>
+      <div class="model-card-arch">ViT-Base-Patch16-224</div>
+      <div class="model-card-desc">Classifies blood cell types from microscopy images — basophil, eosinophil, erythroblast, neutrophil and more.</div>
+      <div class="model-card-dataset">📦 Dataset: MedMNIST BloodMNIST (17,092 images)</div>
+    </div>
+    <div class="model-card fade-in delay-2">
+      <div class="model-card-icon">📊</div>
+      <div class="model-card-name">Multi-class Output</div>
+      <div class="model-card-arch">Softmax Classification Head</div>
+      <div class="model-card-desc">All models output probability distributions across classes using softmax activation, showing confidence for each possible condition.</div>
+      <div class="model-card-dataset">📦 Framework: PyTorch + HuggingFace Transformers</div>
+    </div>
+  </div>
+</section>
+
+<!-- Pipeline Section -->
+<section class="pipeline-section" id="pipeline">
+  <div class="section-heading fade-in">Inference Pipeline</div>
+  <div class="section-sub fade-in">How deep learning inference works end-to-end</div>
+  <div class="pipeline fade-in">
+    <div class="pipeline-step"><div class="pipeline-step-icon">📸</div><div class="pipeline-step-name">Image Input</div><div class="pipeline-step-desc">JPEG/PNG upload</div></div>
+    <div class="pipeline-arrow">→</div>
+    <div class="pipeline-step"><div class="pipeline-step-icon">🔄</div><div class="pipeline-step-name">Preprocessing</div><div class="pipeline-step-desc">Resize 224×224, normalize</div></div>
+    <div class="pipeline-arrow">→</div>
+    <div class="pipeline-step"><div class="pipeline-step-icon">🧠</div><div class="pipeline-step-name">DL Inference</div><div class="pipeline-step-desc">Forward pass through model</div></div>
+    <div class="pipeline-arrow">→</div>
+    <div class="pipeline-step"><div class="pipeline-step-icon">📊</div><div class="pipeline-step-name">Softmax Output</div><div class="pipeline-step-desc">Class probabilities</div></div>
+    <div class="pipeline-arrow">→</div>
+    <div class="pipeline-step"><div class="pipeline-step-icon">📋</div><div class="pipeline-step-name">Medical Report</div><div class="pipeline-step-desc">Structured findings</div></div>
+  </div>
+</section>
+
+<footer>
+  <div class="footer-logo">Medi<span>Scan</span> AI</div>
+  <div class="footer-disclaimer">⚠️ This tool uses real pretrained deep learning models for educational purposes only. It does not constitute medical advice or diagnosis. Always consult a qualified healthcare professional.</div>
+  <div class="footer-right">Powered by HuggingFace 🤗</div>
+</footer>
+
+<script>
+  let selectedFile = null;
+  let selectedCategory = 'xray';
+  let imageBase64 = null;
+  let imageMediaType = 'image/jpeg';
+
+  const modelMap = {
+    xray:    'nickmuchi/vit-base-patch16-224-medmnist-chest',
+    skin:    'nickmuchi/efficientnet-b4-skin-lesions',
+    eye:     'nickmuchi/vit-base-patch16-224-medmnist-retina',
+    mri:     'nickmuchi/vit-base-patch16-224-medmnist-tissue',
+    micro:   'nickmuchi/vit-base-patch16-224-medmnist-blood',
+    general: 'nickmuchi/vit-base-patch16-224-medmnist-chest'
+  };
+
+  document.getElementById('fileInput').addEventListener('change', e => {
+    const file = e.target.files[0];
+    if (file) handleFile(file);
+  });
+
+  const dropArea = document.getElementById('dropArea');
+  dropArea.addEventListener('dragover', e => { e.preventDefault(); dropArea.classList.add('dragover'); });
+  dropArea.addEventListener('dragleave', () => dropArea.classList.remove('dragover'));
+  dropArea.addEventListener('drop', e => {
+    e.preventDefault();
+    dropArea.classList.remove('dragover');
+    const file = e.dataTransfer.files[0];
+    if (file && file.type.startsWith('image/')) handleFile(file);
+  });
+
+  function handleFile(file) {
+    selectedFile = file;
+    imageMediaType = file.type || 'image/jpeg';
+    const reader = new FileReader();
+    reader.onload = e => {
+      const dataUrl = e.target.result;
+      imageBase64 = dataUrl.split(',')[1];
+      const img = document.getElementById('previewImg');
+      img.src = dataUrl;
+      img.style.display = 'block';
+      document.getElementById('dropContent').style.display = 'none';
+      dropArea.classList.add('has-image');
+      document.getElementById('analyzeBtn').disabled = false;
+    };
+    reader.readAsDataURL(file);
+  }
+
+  function selectCat(btn) {
+    document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    selectedCategory = btn.dataset.cat;
+    document.getElementById('modelInfoText').textContent = `Model: ${modelMap[selectedCategory]}`;
+  }
+
+  const loadingMessages = [
+    "Preprocessing image to 224×224...",
+    "Loading model weights...",
+    "Running forward pass...",
+    "Computing softmax probabilities...",
+    "Generating medical report..."
+  ];
+
+  function showLoadingStep(msg, delay) {
+    setTimeout(() => {
+      const steps = document.getElementById('loadingSteps');
+      const el = document.createElement('div');
+      el.className = 'loading-step';
+      el.style.animationDelay = '0s';
+      el.textContent = msg;
+      steps.appendChild(el);
+    }, delay);
+  }
+
+  async function analyzeImage() {
+    if (!imageBase64) return;
+
+    document.getElementById('emptyState').style.display = 'none';
+    document.getElementById('resultContent').style.display = 'none';
+    const loadingState = document.getElementById('loadingState');
+    loadingState.style.display = 'flex';
+    document.getElementById('loadingSteps').innerHTML = '';
+    document.getElementById('analyzeBtn').disabled = true;
+
+    loadingMessages.forEach((msg, i) => showLoadingStep(msg, i * 800));
+
+    try {
+      const response = await fetch('/api/analyze', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ imageBase64, mediaType: imageMediaType, category: selectedCategory })
+      });
+
+      if (!response.ok) {
+        const err = await response.json();
+        throw new Error(err.error || 'Server error');
+      }
+
+      const result = await response.json();
+      renderResult(result);
+    } catch (err) {
+      renderError(err.message);
+    }
+  }
+
+  function renderResult(r) {
+    document.getElementById('loadingState').style.display = 'none';
+    document.getElementById('analyzeBtn').disabled = false;
+
+    const urgencyColors = { routine: '#00e5a0', soon: '#ffb347', urgent: '#ff8c00', emergency: '#ff4d6d' };
+    const urgencyColor = urgencyColors[r.urgency] || '#00e5a0';
+    const isHighSeverity = ['high','medium'].includes(r.severity);
+
+    const findingsHTML = (r.findings || []).map(f => `
+      <div class="finding-item">
+        <div class="finding-dot dot-${f.level === 'normal' ? 'normal' : f.level === 'warning' ? 'warning' : 'danger'}"></div>
+        <div>${f.text}</div>
+      </div>`).join('');
+
+    const conditionsHTML = (r.possibleConditions || []).map(c =>
+      `<span style="display:inline-block;background:rgba(0,153,255,0.1);border:1px solid rgba(0,153,255,0.25);color:var(--accent2);padding:3px 10px;border-radius:20px;font-size:0.75rem;font-family:var(--font-mono);margin:3px">${c}</span>`
+    ).join('');
+
+    // Probability bars from allPredictions
+    const probBarsHTML = (r.allPredictions || []).slice(0, 5).map(p => `
+      <div class="prob-bar-item">
+        <div class="prob-label">${p.label}</div>
+        <div class="prob-track"><div class="prob-fill" style="width:${p.score}%"></div></div>
+        <div class="prob-pct">${p.score}%</div>
+      </div>`).join('');
+
+    const html = `
+      <div style="animation: fadeIn 0.5s forwards">
+        <div class="model-tag">🤗 ${r.modelUsed || 'HuggingFace Model'} · ${r.architecture || 'Deep Learning'}</div>
+
+        <div style="background:var(--surface2);border:1px solid rgba(0,229,200,0.25);border-radius:10px;padding:16px;margin-bottom:12px">
+          <div style="font-size:0.7rem;font-family:var(--font-mono);color:var(--text-dim);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px">PRIMARY CLASSIFICATION</div>
+          <div style="font-family:var(--font-display);font-size:1rem;font-weight:700;color:var(--accent)">${r.primaryFinding || 'Analysis complete'}</div>
+        </div>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px">
+          <div class="severity-bar" style="margin:0">
+            <div class="severity-label">Severity Score</div>
+            <div class="severity-track"><div class="severity-fill ${isHighSeverity?'high':''}" style="width:${r.severityScore||0}%"></div></div>
+            <div class="severity-nums"><span>Normal</span><span style="color:${urgencyColor};font-weight:600">${r.severityScore||0}/100</span><span>Critical</span></div>
+          </div>
+          <div class="severity-bar" style="margin:0">
+            <div class="severity-label">Model Confidence</div>
+            <div class="severity-track"><div class="severity-fill" style="width:${r.confidence||0}%;background:linear-gradient(90deg,var(--accent2),var(--accent))"></div></div>
+            <div class="severity-nums"><span>Low</span><span style="color:var(--accent);font-weight:600">${r.confidence||0}%</span><span>High</span></div>
+          </div>
+        </div>
+
+        ${probBarsHTML ? `
+        <div class="result-section">
+          <div class="result-section-title">CLASS PROBABILITIES</div>
+          <div style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:14px">
+            <div class="prob-bars">${probBarsHTML}</div>
+          </div>
+        </div>` : ''}
+
+        <div class="result-section">
+          <div class="result-section-title">ANALYSIS SUMMARY</div>
+          <div class="result-text">${r.summary || 'Analysis complete.'}</div>
+        </div>
+
+        ${findingsHTML ? `<div class="result-section"><div class="result-section-title">DETAILED FINDINGS</div><div class="findings-list">${findingsHTML}</div></div>` : ''}
+
+        ${conditionsHTML ? `<div class="result-section"><div class="result-section-title">DETECTED CONDITIONS</div><div style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:12px">${conditionsHTML}</div></div>` : ''}
+
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">
+          <div style="font-size:0.72rem;font-family:var(--font-mono);color:var(--text-dim);text-transform:uppercase;letter-spacing:1px">URGENCY</div>
+          <div style="background:rgba(0,0,0,0.2);border:1px solid ${urgencyColor};color:${urgencyColor};padding:4px 14px;border-radius:20px;font-size:0.75rem;font-family:var(--font-mono);font-weight:600;text-transform:uppercase;letter-spacing:1px">${r.urgency || 'routine'}</div>
+        </div>
+
+        <div class="result-section">
+          <div class="result-section-title">RECOMMENDATION</div>
+          <div class="recommendation-box">💡 ${r.recommendation || 'Consult with your healthcare provider.'}</div>
+        </div>
+
+        <div class="disclaimer-box">
+          <span>⚠️</span>
+          <span>Deep learning outputs are for educational purposes only. Not a substitute for clinical diagnosis by a licensed medical professional.</span>
+        </div>
+      </div>`;
+
+    const resultContent = document.getElementById('resultContent');
+    resultContent.innerHTML = html;
+    resultContent.style.display = 'block';
+  }
+
+  function renderError(msg) {
+    document.getElementById('loadingState').style.display = 'none';
+    document.getElementById('analyzeBtn').disabled = false;
+    const resultContent = document.getElementById('resultContent');
+    const isLoading = msg.includes('loading') || msg.includes('503');
+    resultContent.innerHTML = `
+      <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:300px;gap:16px;text-align:center">
+        <div style="font-size:3rem">${isLoading ? '⏳' : '⚠️'}</div>
+        <div style="font-family:var(--font-display);font-weight:700;font-size:1rem;color:${isLoading ? 'var(--accent)' : 'var(--accent3)'}">${isLoading ? 'Model Loading...' : 'Analysis Failed'}</div>
+        <div style="font-size:0.8rem;color:var(--text-dim);font-family:var(--font-mono);max-width:300px">${msg}</div>
+        ${isLoading ? '<div style="font-size:0.75rem;color:var(--text-dim);font-family:var(--font-mono)">HuggingFace models sleep when idle.<br>Please wait 20 seconds and try again.</div>' : ''}
+      </div>`;
+    resultContent.style.display = 'block';
+  }
+
+  const observer = new IntersectionObserver(entries => {
+    entries.forEach(e => { if (e.isIntersecting) e.target.style.animationPlayState = 'running'; });
+  }, { threshold: 0.1 });
+  document.querySelectorAll('.fade-in').forEach(el => {
+    el.style.animationPlayState = 'paused';
+    observer.observe(el);
+  });
+</script>
+</body>
+</html>
