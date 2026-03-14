@@ -21,16 +21,26 @@ export default async function handler(req, res) {
 
     const imageBuffer = Buffer.from(imageBase64, 'base64');
 
-    // Using google/vit-base-patch16-224 — verified working on HF inference
-    const model = 'google/vit-base-patch16-224';
+    const modelMap = {
+      xray:    'google/vit-base-patch16-224',
+      skin:    'google/vit-base-patch16-224',
+      eye:     'google/vit-base-patch16-224',
+      mri:     'google/vit-base-patch16-224',
+      micro:   'google/vit-base-patch16-224',
+      general: 'google/vit-base-patch16-224'
+    };
 
+    const model = modelMap[category] || modelMap.general;
+
+    // Correct endpoint as per HuggingFace docs 2025
     const hfResponse = await fetch(
-      `https://api-inference.huggingface.co/pipeline/image-classification/${model}`,
+      `https://router.huggingface.co/hf-inference/models/${model}`,
       {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${apiKey}`,
-          'Content-Type': mediaType || 'image/jpeg'
+          'Content-Type': mediaType || 'image/jpeg',
+          'x-use-cache': 'false'
         },
         body: imageBuffer
       }
@@ -129,7 +139,7 @@ function buildMedicalReport(predictions, category, model) {
     .slice(0, 3);
 
   return {
-    summary: `Deep learning analysis using ${info.arch} (Vision Transformer) on ${info.name}. Primary classification: ${formatLabel(topLabel)} with ${topScore}% confidence. Model pretrained on ${info.dataset} with 86M parameters.`,
+    summary: `Deep learning analysis using ${info.arch} (Vision Transformer by Google) pretrained on ${info.dataset} with 86M parameters. Primary classification: ${formatLabel(topLabel)} with ${topScore}% confidence across ${sorted.length} output classes.`,
     primaryFinding: `${formatLabel(topLabel)} — ${topScore}% confidence`,
     severity,
     severityScore,
